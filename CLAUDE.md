@@ -11,11 +11,9 @@ Juego de plataformas 2D en español, pixel art, **en un único archivo HTML sin 
 
 | Archivo | Qué es |
 |---|---|
-| `torre-de-ascua.html` | El juego completo. Canónico. |
-| `torre-de-ascua-compartir.html` | Copia **byte-idéntica** para compartir. |
+| `torre-de-ascua.html` | El juego completo. Único archivo del juego. |
 
-Son el mismo archivo. **Si editas uno, copia sobre el otro** o se desincronizan.
-(Conviene decidir si vale la pena mantener los dos.)
+(Existía una copia `torre-de-ascua-compartir.html`; se eliminó el 2026-09-23.)
 
 Estructura interna: `<style>` (líneas ~10-100) · marcado (~105-200) · `<script>` (~203-1560).
 Todo el juego vive dentro de un IIFE en `'use strict'`.
@@ -181,7 +179,7 @@ recursos de terceros son las dos fuentes OFL de Google Fonts.
   `<body>` — empezaba directo en `<title>`. Provocaba modo quirks, acentos rotos
   (`Difícil` → `DifÃ­cil`) y escala minúscula en móvil. Reconstruido desde la copia
   `-compartir`, que sí estaba completa.
-- **Metadatos de `<head>`** en ambos archivos: `description`, Open Graph y Twitter
+- **Metadatos de `<head>`** en el HTML: `description`, Open Graph y Twitter
   Card (para que el enlace se previsualice bien al compartirlo), `theme-color`,
   metas de web-app para iOS/Android, y favicon de llama en SVG inline.
 - **`flipT` inicializado a `0`** en el objeto de nivel; antes `if(L.flipT>0)` leía
