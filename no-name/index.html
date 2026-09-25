@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0a0610">
+<meta name="description" content="Plataformas difícil en pixel art: una brasa contra una torre apagada.">
+<title>NO NAME</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{--night:#0a0610;--ink:#120b1c;--panel:#1a1026;--line:#4a3660;--line2:#2c1f3c;--ember:#ff8a3d;--ember2:#ff5a1f;--gold:#ffd166;--ash:#f4e8da;--muted:#a898b8;--dim:#6a5a7a;--danger:#ff5470;--frost:#8fd8ff;color-scheme:dark}
+[hidden]{display:none!important}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%;background:var(--night)}
+body{margin:0;overflow:hidden;color:var(--ash);font-family:"Pixelify Sans",ui-monospace,"Courier New",monospace;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+button,input,textarea,select{font:inherit;color:inherit}
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#050308;padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0)}
+#stage{position:relative;overflow:hidden;background:#000;box-shadow:0 0 0 2px #000,0 0 80px rgba(255,120,40,.08)}
+#game{display:block;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges}
+.mono{font-family:"VT323",ui-monospace,monospace}
+
+/* ---------- HUD */
+#hud{position:absolute;inset:0 0 auto 0;display:flex;justify-content:space-between;align-items:flex-start;padding:.4em .6em;pointer-events:none;font-family:"VT323",monospace;font-size:1.25em;line-height:1;text-shadow:1px 1px 0 #000,-1px 0 0 #000,0 -1px 0 #000,0 0 6px #000}
+#hud .l,#hud .r{display:flex;gap:.8em;align-items:center}
+#hudLvl{color:var(--gold)}
+#hudName{color:var(--muted)}
+.chip{display:inline-flex;gap:.2em;align-items:center}
+.chip.off{opacity:.3}
+#hudHeat{letter-spacing:.1em}
+#btnPause{pointer-events:auto;background:none;border:0;color:var(--ash);font-family:"VT323",monospace;font-size:1em;padding:0 .2em;cursor:pointer;opacity:.8}
+#bossBar{position:absolute;left:50%;bottom:.7em;transform:translateX(-50%);width:min(70%,24em);pointer-events:none;font-family:"VT323",monospace;text-shadow:1px 1px 0 #000}
+#bossBar .nm{display:flex;justify-content:space-between;font-size:1.1em;color:#ffc2cc;letter-spacing:.14em}
+#bossBar .bar{display:flex;gap:3px;margin-top:2px}
+#bossBar .seg{flex:1;height:.45em;background:#1a0a12;box-shadow:0 0 0 1px #000,inset 0 0 0 1px #3a1a2a}
+#bossBar .seg i{display:block;height:100%;background:var(--danger);transition:width .25s}
+#bossBar .seg.done i{background:#3a2030}
+#hint{position:absolute;left:50%;bottom:2.4em;transform:translateX(-50%);max-width:min(92%,30em);text-align:center;font-size:.95em;line-height:1.25;background:rgba(10,6,16,.86);box-shadow:0 0 0 1px var(--line);padding:.35em .8em;pointer-events:none;transition:opacity .4s;text-wrap:balance}
+#card{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;text-align:center;transition:opacity .5s;text-shadow:0 2px 0 #000,0 0 16px #000;padding:0 1em}
+#card .k{font-size:.85em;letter-spacing:.4em;color:var(--ember)}
+#card .t{font-size:3em;line-height:1;color:var(--gold);font-weight:700}
+#card .s{font-size:1.25em}
+#card .q{font-family:"VT323",monospace;font-size:1.15em;color:var(--muted);margin-top:.5em;max-width:28em}
+#card.boss .t{color:#ff8fa3;letter-spacing:.06em}
+#toast{position:absolute;right:.6em;top:2.2em;display:flex;flex-direction:column;gap:.3em;align-items:flex-end;pointer-events:none}
+#toast div{background:rgba(10,6,16,.92);box-shadow:0 0 0 1px var(--gold);padding:.3em .6em;font-size:.85em;animation:tin .3s}
+#toast b{color:var(--gold);font-weight:600;display:block}
+#toast span{font-family:"VT323",monospace;color:var(--muted)}
+@keyframes tin{from{transform:translateX(1em);opacity:0}}
+#runT{position:absolute;right:.6em;bottom:.5em;font-family:"VT323",monospace;font-size:1.4em;color:var(--frost);text-shadow:1px 1px 0 #000;pointer-events:none}
+
+/* ---------- pantallas */
+.scr{position:absolute;inset:0;overflow:hidden}
+.dim{background:rgba(6,3,10,.72)}
+.menu{position:absolute;left:7%;top:0;bottom:0;display:flex;flex-direction:column;justify-content:center;gap:.05em}
+.logo{margin:0 0 .5em;font-size:3.6em;line-height:.85;font-weight:700;color:var(--gold);letter-spacing:.04em;text-shadow:0 .06em 0 #b8400f,0 .12em 0 #4a1206,0 0 .5em rgba(255,140,60,.45)}
+.logo small{display:block;font-size:.2em;letter-spacing:.5em;color:var(--ember);text-shadow:none;margin-top:.9em;font-weight:400}
+.mi{position:relative;display:block;background:none;border:0;padding:.14em 0 .14em 1.3em;text-align:left;font-size:1.25em;color:var(--muted);cursor:pointer;white-space:nowrap}
+.mi small{font-family:"VT323",monospace;font-size:.8em;color:var(--dim);margin-left:.5em}
+.mi:disabled{color:#3e3348;cursor:default}
+.mi.sel{color:var(--ash)}
+.mi.sel::before{content:"";position:absolute;left:0;top:50%;width:.7em;height:1em;transform:translateY(-55%);background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 10' shape-rendering='crispEdges'%3E%3Cpath fill='%23ff5a1f' d='M3 0h1v1h1v2h1v2h1v4H6v1H1V9H0V5h1V3h1V1h1z'/%3E%3Cpath fill='%23ffa53d' d='M3 3h1v1h1v2h1v3H1V6h1V4h1z'/%3E%3Cpath fill='%23fff1b8' d='M3 6h1v1h1v2H2V7h1z'/%3E%3C/svg%3E") no-repeat center/contain;animation:flk .5s steps(2) infinite}
+@keyframes flk{50%{transform:translateY(-55%) scaleX(-1)}}
+.foot{position:absolute;left:7%;bottom:.8em;font-family:"VT323",monospace;font-size:1em;color:var(--dim);display:flex;gap:1.2em}
+.foot b{color:var(--gold);font-weight:400}
+.acctTag{position:absolute;right:.8em;top:.6em;font-family:"VT323",monospace;font-size:1.05em;color:var(--muted);text-align:right}
+.acctTag b{color:var(--ash);font-weight:400}
+.acctTag i{font-style:normal;color:var(--gold)}
+
+/* paneles (sub-pantallas) */
+.pane{position:absolute;inset:0;display:flex;flex-direction:column;padding:.9em 1.2em .7em}
+.pane h2{margin:0;font-size:1.7em;font-weight:700;color:var(--gold);line-height:1;display:flex;align-items:baseline;gap:.5em}
+.pane h2 small{font-size:.5em;color:var(--dim);font-family:"VT323",monospace;font-weight:400;letter-spacing:.1em}
+.rule{height:2px;background:repeating-linear-gradient(90deg,var(--line) 0 6px,transparent 6px 10px);margin:.45em 0 .55em;flex:none}
+.body{flex:1;min-height:0;display:flex;gap:1em}
+.col{display:flex;flex-direction:column;min-height:0}
+.scroll{overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.back{position:absolute;right:1.2em;top:1em;font-family:"VT323",monospace;font-size:1em;color:var(--dim)}
+.back b{color:var(--muted);font-weight:400}
+.tabs{display:flex;gap:1.2em;flex-wrap:wrap}
+.tab{background:none;border:0;padding:0 0 .15em;font-size:1em;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent}
+.tab.on{color:var(--ash);border-bottom-color:var(--ember)}
+.tab.sel{color:var(--gold)}
+.row{display:flex;gap:.6em;align-items:center;flex-wrap:wrap}
+.btn{background:none;border:0;box-shadow:0 0 0 2px var(--line);padding:.25em .8em;font-size:1em;cursor:pointer;color:var(--ash)}
+.btn.sel,.btn:hover{box-shadow:0 0 0 2px var(--ember);color:#fff}
+.btn.pri{background:var(--ember);color:#1a0804;box-shadow:0 0 0 2px #ffc08f}
+.btn.pri.sel{box-shadow:0 0 0 2px #fff}
+.muted{color:var(--muted)}
+.dimt{color:var(--dim)}
+.gold{color:var(--gold)}
+.vt{font-family:"VT323",monospace}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:.1em 1em;font-family:"VT323",monospace;font-size:1.2em}
+.kv dt{color:var(--dim)}
+.kv dd{margin:0;font-variant-numeric:tabular-nums}
+
+/* torre (selector de pisos) */
+#towerList{flex:1.35;gap:.5em;padding-right:.4em}
+.realm{display:grid;grid-template-columns:2.2em 1fr;gap:.5em;align-items:center}
+.realm .rn{font-size:1.4em;color:var(--z,#888);text-align:center;font-weight:700}
+.realm.soon{opacity:.35}
+.floors{display:grid;grid-template-columns:repeat(12,1fr);gap:3px}
+.fl{aspect-ratio:3/4;background:#140c1c;border:0;box-shadow:inset 0 0 0 1px #2c1f3c;padding:0;cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center;font-family:"VT323",monospace;font-size:.9em;color:var(--dim)}
+.fl.clr{background:linear-gradient(#ffd16633,#ff8a3d22);color:var(--ash);box-shadow:inset 0 0 0 1px #6a4a2a}
+.fl.clr::after{content:"";position:absolute;inset:25% 30%;background:var(--gold);opacity:.18}
+.fl.spk::before{content:"✦";position:absolute;top:-.1em;right:.1em;font-size:.8em;color:var(--gold)}
+.fl.boss{box-shadow:inset 0 0 0 1px #6a1d33;color:#ff8fa3}
+.fl.boss.clr{background:linear-gradient(#ff547033,#40101a55)}
+.fl:disabled{opacity:.3;cursor:default}
+.fl.sel{box-shadow:inset 0 0 0 2px var(--gold);z-index:1}
+.fl.cur{outline:1px dashed var(--ember);outline-offset:1px}
+#floorInfo{flex:1;background:rgba(0,0,0,.25);box-shadow:inset 0 0 0 1px var(--line2);padding:.6em .8em;gap:.35em}
+#floorInfo .fname{font-size:1.4em;color:var(--ash);line-height:1.05}
+#floorInfo .fz{font-family:"VT323",monospace;color:var(--z,var(--muted));letter-spacing:.15em}
+#floorInfo .lore{font-family:"VT323",monospace;font-size:1.1em;color:var(--muted);line-height:1.1}
+
+/* tienda */
+#shopGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(5.4em,1fr));gap:.4em;align-content:start}
+.it{background:#140c1c;border:0;box-shadow:inset 0 0 0 1px var(--line2);padding:.3em .2em .25em;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:.1em;font-size:.8em;color:var(--muted);position:relative}
+.it canvas{width:3.2em;height:3.2em;image-rendering:pixelated}
+.it .pr{font-family:"VT323",monospace;font-size:1.15em;color:var(--gold)}
+.it.own .pr{color:var(--dim)}
+.it.eq{box-shadow:inset 0 0 0 2px var(--ember)}
+.it.lock{opacity:.45}
+.it.sel{box-shadow:inset 0 0 0 2px var(--gold)}
+.it .x{position:absolute;top:.2em;right:.3em;font-size:.9em;color:var(--danger)}
+#shopSide{width:11em;flex:none;align-items:center;gap:.4em;text-align:center}
+#shopPrev{width:8em;height:8em;image-rendering:pixelated;background:radial-gradient(#2a1840,#0a0610 70%);box-shadow:inset 0 0 0 1px var(--line)}
+.purse{font-family:"VT323",monospace;font-size:1.4em;color:var(--gold)}
+
+/* listas */
+.list{display:flex;flex-direction:column;gap:.15em}
+.li{display:grid;grid-template-columns:2em 1fr auto;gap:.6em;align-items:center;padding:.2em .4em;font-family:"VT323",monospace;font-size:1.15em;background:none;border:0;text-align:left;color:var(--ash)}
+.li:nth-child(odd){background:rgba(255,255,255,.025)}
+.li .n{color:var(--dim);text-align:right}
+.li .t{font-variant-numeric:tabular-nums;color:var(--frost)}
+.li.me{background:rgba(255,138,61,.14)!important}
+.li .ttl{color:var(--gold);font-size:.85em;margin-left:.4em}
+.li.lk{color:var(--dim)}
+.li.sel{box-shadow:inset 0 0 0 1px var(--gold)}
+.ach .ic{width:1.3em;height:1.3em;background:#2a1f3a;box-shadow:inset 0 0 0 1px var(--line)}
+.ach.got .ic{background:var(--gold);box-shadow:inset 0 0 0 2px #b8400f}
+.ach .d{color:var(--dim);font-size:.9em;display:block}
+
+/* formularios */
+.field{display:flex;flex-direction:column;gap:.15em;font-size:.9em;color:var(--muted)}
+.field input,.field textarea,.field select{background:#0c0714;border:0;box-shadow:inset 0 0 0 2px var(--line);padding:.35em .5em;font-size:1.05em;color:var(--ash);outline:none;font-family:"VT323",monospace;user-select:text;-webkit-user-select:text}
+.field input:focus,.field textarea:focus,.field input.sel,.field textarea.sel{box-shadow:inset 0 0 0 2px var(--ember)}
+.field textarea{resize:none;height:6em}
+.msg{font-family:"VT323",monospace;font-size:1.1em;min-height:1.2em}
+.msg.err{color:var(--danger)}
+.msg.ok{color:#8ef07a}
+.opt{display:grid;grid-template-columns:1fr auto;gap:1em;align-items:center;padding:.15em .4em;background:none;border:0;text-align:left;font-size:1.05em;color:var(--muted);cursor:pointer}
+.opt.sel{color:var(--ash);box-shadow:inset 2px 0 0 var(--ember)}
+.opt .v{font-family:"VT323",monospace;color:var(--gold);font-size:1.15em}
+.bars{letter-spacing:-.05em}
+
+/* resultados */
+.result{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-start;padding-left:8%;background:linear-gradient(90deg,rgba(6,3,10,.94) 0,rgba(6,3,10,.7) 50%,rgba(6,3,10,0) 100%)}
+.result .inner{display:flex;flex-direction:column;gap:.4em;min-width:16em}
+.result h2{margin:0;font-size:2.2em;color:var(--gold);line-height:1}
+.result .k{font-size:.8em;letter-spacing:.35em;color:var(--ember)}
+.rec{display:inline-block;background:var(--gold);color:#1a0804;padding:0 .4em;font-size:.8em;animation:pop .5s}
+@keyframes pop{from{transform:scale(1.6)}}
+.share{font-family:"VT323",monospace;font-size:1.05em;background:rgba(0,0,0,.35);box-shadow:inset 0 0 0 1px var(--line);padding:.4em .6em;max-width:26em;user-select:text;-webkit-user-select:text}
+
+/* táctil */
+#touch{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:flex-end;padding:0 max(16px,env(safe-area-inset-left)) calc(14px + env(safe-area-inset-bottom,0px));pointer-events:none;z-index:5}
+#touch .g{display:flex;gap:12px;pointer-events:auto;align-items:flex-end}
+#touch button{width:calc(64px*var(--ts,1));height:calc(64px*var(--ts,1));border-radius:50%;background:rgba(30,18,46,.5);border:2px solid rgba(255,200,150,.3);font-size:calc(22px*var(--ts,1));touch-action:none;color:var(--ash)}
+#touch button.on{background:rgba(255,138,61,.55)}
+#touch #tJ{width:calc(80px*var(--ts,1));height:calc(80px*var(--ts,1))}
+#tP{position:fixed;top:calc(8px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);width:44px!important;height:30px!important;border-radius:4px!important;font-size:14px!important;pointer-events:auto}
+@media (prefers-reduced-motion:reduce){.mi.sel::before{animation:none}}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="stage">
+    <canvas id="game" width="384" height="216" aria-label="Juego"></canvas>
+
+    <div id="hud" hidden>
+      <div class="l"><span id="hudLvl">I-1</span><span id="hudName"></span></div>
+      <div class="r">
+        <span id="hudHeat" class="chip"></span>
+        <span id="hudKey" class="chip" hidden style="color:#9ff0ff">⚷<span id="hudKeyN">0</span></span>
+        <span id="hudCoin" class="chip" style="color:var(--ember)">◆<span id="hudCoinN">0</span></span>
+        <span id="hudSpark" class="chip off" style="color:var(--gold)">✦</span>
+        <span class="chip">✝<span id="hudDeaths">0</span></span>
+        <span id="hudTime">0:00.00</span>
+        <button id="btnPause" aria-label="Pausa">II</button>
+      </div>
+    </div>
+    <div id="bossBar" hidden><div class="nm"><span id="bossName"></span><span id="bossPhase"></span></div><div class="bar" id="bossSegs"></div></div>
+    <div id="hint" style="opacity:0"></div>
+    <div id="card" style="opacity:0"></div>
+    <div id="runT" hidden></div>
+    <div id="toast"></div>
+
+    <!-- MENÚ PRINCIPAL -->
+    <section id="sMain" class="scr" hidden>
+      <div class="acctTag" id="acctTag"></div>
+      <nav class="menu" id="mainMenu">
+        <h1 class="logo" id="logo">NO NAME<small>UNA BRASA CONTRA LA TORRE</small></h1>
+      </nav>
+      <div class="foot" id="mainFoot"></div>
+    </section>
+
+    <!-- TORRE -->
+    <section id="sTower" class="scr dim" hidden>
+      <div class="pane">
+        <h2>La torre <small id="towerSub"></small></h2>
+        <div class="rule"></div>
+        <div class="body">
+          <div id="towerList" class="col scroll"></div>
+          <div id="floorInfo" class="col"></div>
+        </div>
+      </div>
+      <div class="back"><b>ESC</b> volver</div>
+    </section>
+
+    <!-- CARRERA -->
+    <section id="sRun" class="scr dim" hidden>
+      <div class="pane">
+        <h2>Carrera <small>SPEEDRUN · CRONO CONTINUO</small></h2>
+        <div class="rule"></div>
+        <div class="body"><div class="col" style="flex:1;gap:.2em" id="runList"></div><div class="col" style="flex:1" id="runInfo"></div></div>
+      </div>
+      <div class="back"><b>ESC</b> volver</div>
+    </section>
+
+    <!-- TIENDA -->
+    <section id="sShop" class="scr dim" hidden>
+      <div class="pane">
+        <h2>El taller <small>GASTA TUS BRASAS</small></h2>
+        <div class="rule"></div>
+        <div class="tabs" id="shopTabs"></div>
+        <div class="body" style="margin-top:.5em">
+          <div id="shopGrid" class="scroll" style="flex:1"></div>
+          <div id="shopSide" class="col"><canvas id="shopPrev" width="64" height="64"></canvas><div id="shopName"></div><div class="purse" id="purse"></div><div class="msg" id="shopMsg"></div></div>
+        </div>
+      </div>
+      <div class="back"><b>ESC</b> volver</div>
+    </section>
+
+    <!-- LOGROS -->
+    <section id="sAch" class="scr dim" hidden>
+      <div class="pane">
+        <h2>Logros <small id="achSub"></small></h2>
+        <div class="rule"></div>
+        <div class="row" style="margin-bottom:.4em"><span class="muted">Título:</span><button class="btn" id="bTitle"></button></div>
+        <div class="list scroll" id="achList" style="flex:1"></div>
+      </div>
+      <div class="back"><b>ESC</b> volver</div>
+    </section>
+
+    <!-- RANKING -->
+    <section id="sRank" class="scr dim" hidden>
+      <div class="pane">
+        <h2>Ranking <small id="rankSub"></small></h2>
+        <div class="rule"></div>
+        <div class="tabs" id="rankTabs"></div>
+        <div class="body" style="margin-top:.5em">
+          <div class="col" style="flex:1.4"><div class="list scroll" id="rankList" style="flex:1"></div></div>
+          <div class="col" style="flex:1;gap:.4em" id="rankSide"></div>
+        </div>
+      </div>
+      <div class="back"><b>ESC</b> volver</div>
+    </section>
+
+    <!-- OPCIONES -->
+    <section id="sOpt" class="scr dim" hidden>
+      <div class="pane">
+        <h2>Opciones</h2>
+        <div class="rule"></div>
+        <div class="body"><div class="col" style="flex:1;gap:.15em;max-width:26em" id="optList"></div><div class="col vt muted" style="flex:1;font-size:1.1em" id="optHelp"></div></div>
+      </div>
+      <div class="back"><b>ESC</b> volver</div>
+    </section>
+
+    <!-- CUENTA -->
+    <section id="sAcct" class="scr dim" hidden>
+      <div class="pane">
+        <h2>Cuenta <small id="acctSub"></small></h2>
+        <div class="rule"></div>
+        <div class="body" id="acctBody"></div>
+      </div>
+      <div class="back"><b>ESC</b> volver</div>
+    </section>
+
+    <!-- BUZÓN -->
+    <section id="sMail" class="scr dim" hidden>
+      <div class="pane">
+        <h2>Buzón <small>PARA LAS PRÓXIMAS VERSIONES</small></h2>
+        <div class="rule"></div>
+        <div class="body">
+          <div class="col" style="flex:1;gap:.5em">
+            <div class="tabs" id="mailKinds"></div>
+            <label class="field">Tu mensaje<textarea id="mailText" maxlength="600" placeholder="¿Qué te gustó? ¿Qué odiaste? ¿Qué piso te hizo llorar?"></textarea></label>
+            <div class="row"><button class="btn pri" id="bMailSend">Enviar</button><span class="msg" id="mailMsg"></span></div>
+          </div>
+          <div class="col vt muted" style="flex:.8;font-size:1.1em;line-height:1.15" id="mailSide"></div>
+        </div>
+      </div>
+      <div class="back"><b>ESC</b> volver</div>
+    </section>
+
+    <!-- CRÉDITOS -->
+    <section id="sCred" class="scr dim" hidden>
+      <div class="pane" style="align-items:center;justify-content:center;text-align:center">
+        <h2 id="credTitle" style="justify-content:center;font-size:2.4em"></h2>
+        <div class="rule" style="width:12em"></div>
+        <div id="credBody" class="vt" style="font-size:1.25em;line-height:1.3"></div>
+      </div>
+      <div class="back"><b>ESC</b> volver</div>
+    </section>
+
+    <!-- PAUSA -->
+    <section id="sPause" class="scr dim" hidden>
+      <nav class="menu" id="pauseMenu"><p class="vt" id="pauseLvl" style="margin:0 0 .3em;color:var(--ember);letter-spacing:.25em"></p><h2 style="margin:0 0 .4em;font-size:2.6em;color:var(--gold)">PAUSA</h2></nav>
+    </section>
+
+    <!-- RESULTADO DE PISO -->
+    <section id="sWin" class="scr" hidden>
+      <div class="result"><div class="inner" id="winInner"></div></div>
+    </section>
+
+    <!-- FINAL -->
+    <section id="sEnd" class="scr dim" hidden>
+      <div class="pane" style="justify-content:center;align-items:flex-start;padding-left:8%" id="endInner"></div>
+    </section>
+  </div>
+  <div id="touch" hidden>
+    <div class="g"><button id="tL" aria-label="Izquierda">◀</button><button id="tR" aria-label="Derecha">▶</button></div>
+    <button id="tP" aria-label="Pausa">II</button>
+    <div class="g"><button id="tD" aria-label="Impulso">⚡</button><button id="tJ" aria-label="Saltar">▲</button></div>
+  </div>
+</div>
+<script src="js/config.js"></script>
+<script src="js/meta.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/render.js"></script>
+<script src="js/bosses.js"></script>
+<script src="js/levels.js"></script>
+<script src="js/net.js"></script>
+<script src="js/ui.js"></script>
+<script>
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>

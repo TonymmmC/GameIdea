@@ -1,0 +1,6 @@
+  d 0 h 33.0 wp 0 pos 4.1 57.6 seen 10
+  d 50 h 14.0 wp 0 pos 11.1 45.3 seen 24662
+  d 100 h 7.0 wp 0 pos 12.2 37.8 seen 44494
+  d 150 h 6.0 wp 0 pos 12.1 36.9 seen 60214
+  d 200 h 10.0 wp 0 pos 12.0 41.6 seen 72569
+1-11  FALLA {"h":5,"x":"12.5","y":"35.9","w":0,"depth":83} sin estados  (290s)

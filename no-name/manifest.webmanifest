@@ -1,0 +1,16 @@
+{
+  "name": "NO NAME",
+  "short_name": "NO NAME",
+  "description": "Plataformas difícil en pixel art: una brasa contra una torre apagada.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#0a0610",
+  "theme_color": "#0a0610",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icons/icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
